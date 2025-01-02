@@ -1,33 +1,62 @@
 #!/bin/bash
 
-# Oprește procesul anterior dacă există
-pm2 stop all || true
-pm2 delete all || true
-pm2 kill || true
+echo "🔄 Pornire proces deployment..."
 
-# Actualizează codul
-git pull origin main
+# Oprește și curăță toate procesele PM2
+echo "🧹 Curățare procese vechi..."
+pm2 delete all
+pm2 kill
+
+# Șterge fișierele PM2 existente pentru a începe proaspăt
+echo "🗑️ Ștergere fișiere PM2 vechi..."
+rm -rf ~/.pm2
+rm -rf /root/.pm2
+
+# Reinițializează PM2
+echo "🔄 Reinițializare PM2..."
+pm2 update
 
 # Instalează dependențele
+echo "📦 Instalare dependențe..."
 npm install
 
-# Asigură-ne că avem permisiunile corecte
+# Setează permisiunile corecte
+echo "🔒 Setare permisiuni..."
+mkdir -p ~/.pm2
 sudo chown -R ubuntu:ubuntu ~/.pm2
+sudo chmod -R 777 ~/.pm2
 sudo chown -R ubuntu:ubuntu .
 
-# Pornește PM2 daemon dacă nu rulează
-pm2 ping || pm2 resurrect
+# Pornește daemon-ul PM2
+echo "🚀 Pornire daemon PM2..."
+pm2 status
 
-# Pornește aplicația folosind ecosystem file
-pm2 start ecosystem.config.cjs
+# Pornește aplicația
+echo "🚀 Pornire aplicație..."
+pm2 start scraper.js \
+    --name "scraper" \
+    --exp-backoff-restart-delay=1000 \
+    --max-memory-restart 2G \
+    --merge-logs \
+    --log-date-format "YYYY-MM-DD HH:mm:ss" \
+    --time \
+    --no-autorestart false
 
 # Salvează configurația
+echo "💾 Salvare configurație PM2..."
 pm2 save --force
 
-# Afișează status
+# Verifică dacă procesul rulează
+echo "✅ Verificare status..."
 pm2 list
 
-echo "Procesul ar trebui să ruleze acum. Pentru a verifica:"
-echo "pm2 list        # vezi statusul"
-echo "pm2 logs        # vezi log-urile"
-echo "pm2 monit      # monitorizează procesul" 
+# Așteaptă puțin să se stabilizeze
+sleep 5
+
+# Verifică din nou statusul
+echo "📊 Status final:"
+pm2 list
+
+echo "✨ Deployment complet!"
+echo "Pentru a monitoriza, folosește: pm2 monit"
+echo "Pentru a vedea log-urile: pm2 logs scraper" 
