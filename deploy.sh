@@ -11,9 +11,6 @@ git pull origin main
 # Instalează dependențele
 npm install
 
-# Compilează TypeScript
-npx tsc --target es2020 --module es2020 --moduleResolution node --outDir dist scraper.ts
-
 # Asigură-ne că avem permisiunile corecte
 sudo chown -R ubuntu:ubuntu ~/.pm2
 sudo chown -R ubuntu:ubuntu .
@@ -22,13 +19,12 @@ sudo chown -R ubuntu:ubuntu .
 pm2 ping || pm2 resurrect
 
 # Pornește aplicația folosind ecosystem file
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 
 # Salvează configurația
 pm2 save --force
 
 # Afișează status
-echo "Verifică statusul procesului:"
 pm2 list
 
 echo "Procesul ar trebui să ruleze acum. Pentru a verifica:"

@@ -5,28 +5,21 @@ const BEARER_TOKEN = 'dynamic-token';
 const BASE_URL = 'https://www.firme.info/medicina/psihologie/pagina_lista_firme_{PAGE}.html';
 const API_URL = 'https://api.e-cui.ro/v1/companies/';
 
-interface ScrapingResult {
-    success: number;
-    failed: number;
-    cuis: string[];
-}
-
-async function sleep(ms: number): Promise<void> {
+async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function scrapePage(pageNumber: number): Promise<string[]> {
+async function scrapePage(pageNumber) {
     try {
         const url = BASE_URL.replace('{PAGE}', pageNumber.toString());
         const response = await axios.get(url);
         const $ = cheerio.load(response.data);
-        const cuis: string[] = [];
+        const cuis = [];
 
-        // Găsește toate rândurile din tabel care conțin CUI
         $('tr').each((_, element) => {
             const secondColumn = $(element).find('td:nth-child(2)');
             const text = secondColumn.text().trim();
-            const cuiMatch = text.match(/\d{6,}/); // Caută numere de 6+ cifre (CUI)
+            const cuiMatch = text.match(/\d{6,}/);
             if (cuiMatch) {
                 cuis.push(cuiMatch[0]);
             }
@@ -34,12 +27,12 @@ async function scrapePage(pageNumber: number): Promise<string[]> {
 
         return cuis;
     } catch (error) {
-        console.error(`Eroare la pagina ${pageNumber}:`, error);
+        console.error(`Eroare la pagina ${pageNumber}:`, error.message);
         return [];
     }
 }
 
-async function processCUI(cui: string): Promise<boolean> {
+async function processCUI(cui) {
     try {
         await axios.get(`${API_URL}${cui}`, {
             headers: {
@@ -49,15 +42,15 @@ async function processCUI(cui: string): Promise<boolean> {
         console.log(`✅ CUI procesat cu succes: ${cui}`);
         return true;
     } catch (error) {
-        console.error(`❌ Eroare la procesarea CUI ${cui}:`, error);
+        console.error(`❌ Eroare la procesarea CUI ${cui}:`, error.message);
         return false;
     }
 }
 
 async function main() {
     const startPage = 1;
-    const endPage = 72; // sau câte pagini doriți să procesați
-    const results: ScrapingResult = {
+    const endPage = 72;
+    const results = {
         success: 0,
         failed: 0,
         cuis: []
@@ -70,7 +63,6 @@ async function main() {
         const cuis = await scrapePage(page);
         results.cuis.push(...cuis);
 
-        // Procesează CUI-urile găsite
         for (const cui of cuis) {
             const success = await processCUI(cui);
             if (success) {
@@ -78,11 +70,9 @@ async function main() {
             } else {
                 results.failed++;
             }
-            // Așteaptă 1 secundă între request-uri pentru a nu supraîncărca API-ul
             await sleep(1000);
         }
 
-        // Așteaptă 2 secunde între pagini
         await sleep(2000);
     }
 
@@ -92,5 +82,4 @@ async function main() {
     console.log(`Eșuate: ${results.failed}`);
 }
 
-// Pornește scriptul
 main().catch(console.error); 
