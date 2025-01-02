@@ -18,10 +18,14 @@ pm2 start dist/scraper.js \
     --name "scraper" \
     --max-memory-restart 2G \
     --node-args="--max-old-space-size=2048 --experimental-modules" \
-    --exp-backoff-restart-delay=1000
+    --exp-backoff-restart-delay=1000 \
+    --watch \
+    --restart-delay=3000 \
+    --no-autorestart=false \
+    --time
 
-# Salvează configurația PM2
-pm2 save
+# Forțează salvarea configurației PM2
+pm2 save --force
 
 # Afișează logs
 pm2 logs scraper 
