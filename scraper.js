@@ -57,7 +57,9 @@ async function processCUI(cui) {
             }
         });
 
-        console.log(`✅ CUI procesat cu succes: ${cleanCui}`);
+        const respData = response.data;
+
+        console.log(`✅ CUI procesat cu succes: ${cleanCui}. Status: ${response.status}. Raspuns API e-data: ${respData.status.code} (${respData.status.message})`);
         return true;
     } catch (error) {
         if (error.response?.status === 500) {
