@@ -1,15 +1,13 @@
 module.exports = {
   apps: [{
-    name: 'scraper',
-    script: './dist/scraper.js',
-    instances: 1,
-    exec_mode: 'fork',
+    name: "scraper",
+    script: "./scraper.js",
     watch: false,
-    max_memory_restart: '2G',
+    instances: 1,
+    autorestart: true,
+    max_memory_restart: '1G',
     env: {
-      NODE_ENV: 'production'
-    },
-    merge_logs: true,
-    log_date_format: 'YYYY-MM-DD HH:mm:ss'
+      NODE_ENV: "production"
+    }
   }]
-}; 
+} 
