@@ -1,21 +1,21 @@
 #!/bin/bash
+# Oprește procesul anterior dacă există
+pm2 stop scraper || true
+pm2 delete scraper || true
 
-# Oprește toate procesele existente
-pm2 delete all
+# Instalează dependențele
+npm install
 
-# Curăță tot
-pm2 kill
 
-# Așteaptă puțin să se oprească tot
-sleep 2
-
-# Pornește doar un singur proces
+# Pornește procesul cu PM2
 pm2 start scraper.js \
     --name "scraper" \
-    --time \
-    --no-autorestart false
+    --max-memory-restart 12G \
+    --node-args="--max-old-space-size=12288" \
+    --exp-backoff-restart-delay=1000
 
-# Salvează configurația
-pm2 save --force
+# Salvează configurația PM2
+pm2 save
 
-echo "Gata! Verifică cu: pm2 list" 
+# Afișează logs
+pm2 logs scraper 
