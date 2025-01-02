@@ -1,32 +1,27 @@
 #!/bin/bash
 
-echo "🚀 Începe procesul de deployment..."
+# Oprește procesul anterior dacă există
+pm2 stop scraper || true
+pm2 delete scraper || true
 
-# Verifică dacă suntem în directorul corect
-if [ ! -f "scraper.ts" ]; then
-    echo "❌ Eroare: Nu s-a găsit scraper.ts în directorul curent!"
-    exit 1
-fi
+# Actualizează codul
+git pull origin main
 
-# Curăță PM2
-echo "🧹 Curățare PM2..."
-pm2 delete all
-pm2 kill
-
-# Verifică și instalează dependențele
-echo "📦 Verificare dependențe..."
+# Instalează dependențele
 npm install
 
-# Pornește aplicația direct cu ts-node prin PM2
-echo "🚀 Pornire aplicație..."
-pm2 start ecosystem.config.js --time
+# Compilează TypeScript cu configurația corectă pentru ES modules
+npx tsc --target es2020 --module es2020 --moduleResolution node --outDir dist scraper.ts
+
+# Pornește procesul cu PM2 (folosind fișierul din directorul dist)
+pm2 start dist/scraper.js \
+    --name "scraper" \
+    --max-memory-restart 2G \
+    --node-args="--max-old-space-size=2048 --experimental-modules" \
+    --exp-backoff-restart-delay=1000
 
 # Salvează configurația PM2
-echo "💾 Salvare configurație PM2..."
 pm2 save
 
-# Afișează status-ul și log-urile imediat
-echo "📊 Status PM2:"
-pm2 list
-echo "📜 Log-uri recente:"
-pm2 logs --lines 20 --nostream 
+# Afișează logs
+pm2 logs scraper 

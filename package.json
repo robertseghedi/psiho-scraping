@@ -1,11 +1,10 @@
 {
   "name": "psiho-scraping",
   "version": "1.0.0",
-  "main": "scraper.ts",
+  "type": "module",
+  "main": "scraper.js",
   "scripts": {
-    "start": "ts-node scraper.js",
-    "build": "tsc",
-    "pm2": "ts-node scraper.js"
+    "start": "node scraper.js"
   },
   "keywords": [],
   "author": "",
