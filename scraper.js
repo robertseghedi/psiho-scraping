@@ -1,5 +1,5 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 const BEARER_TOKEN = 'dynamic-token';
 const BASE_URL = 'https://www.firme.info/medicina/psihologie/pagina_lista_firme_{PAGE}.html';
@@ -41,11 +41,24 @@ async function scrapePage(pageNumber) {
 
 async function processCUI(cui) {
     try {
-        await axios.get(`${API_URL}${cui}`, {
+        // Adăugăm un delay între requesturi pentru a evita rate limiting
+        await sleep(2000);
+
+        const response = await axios.get(`${API_URL}${cui}`, {
             headers: {
-                'Authorization': `Bearer ${BEARER_TOKEN}`
+                'Authorization': `Bearer ${BEARER_TOKEN}`,
+                'Accept': 'application/json'
+            },
+            validateStatus: function (status) {
+                return status < 600; // Acceptă orice status pentru a evita crash-ul
             }
         });
+
+        if (response.status === 500) {
+            console.log(`⚠️ CUI ${cui} nu a fost găsit în baza de date`);
+            return false;
+        }
+
         console.log(`✅ CUI procesat cu succes: ${cui}`);
         return true;
     } catch (error) {
@@ -63,11 +76,17 @@ async function main() {
         cuis: []
     };
 
-    console.log('🚀 Începe procesul de scraping...');
+    console.log('🚀 Începe procesul de scraping...\n');
 
     for (let page = startPage; page <= endPage; page++) {
         console.log(`\n📄 Procesare pagina ${page}...`);
         const cuis = await scrapePage(page);
+        
+        if (cuis.length === 0) {
+            console.log(`⚠️ Nu s-au găsit CUI-uri pe pagina ${page}`);
+            continue;
+        }
+
         results.cuis.push(...cuis);
 
         for (const cui of cuis) {
@@ -77,9 +96,9 @@ async function main() {
             } else {
                 results.failed++;
             }
-            await sleep(1000);
         }
 
+        console.log(`\n✨ Pagina ${page} completă. Progres: ${results.success + results.failed}/${results.cuis.length}`);
         await sleep(2000);
     }
 
