@@ -58,6 +58,11 @@ async function processCUI(cui) {
         });
 
         const respData = response.data;
+        console.log({
+            input: cui,
+            status: response.status,
+            respData: respData
+        });
 
         console.log(`✅ CUI procesat cu succes: ${cleanCui}. Status: ${response.status}. Raspuns API e-data: ${respData.status.code} (${respData.status.message})`);
         return true;
