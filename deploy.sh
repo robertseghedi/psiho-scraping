@@ -8,34 +8,25 @@ if [ ! -f "scraper.ts" ]; then
     exit 1
 fi
 
-# Instalează dependințele dacă nu există
-if [ ! -d "node_modules" ]; then
-    echo "📦 Instalare dependințe..."
-    npm install
-fi
-
-# Oprește orice instanță anterioară și curăță PM2
+# Curăță PM2
 echo "🧹 Curățare PM2..."
 pm2 delete all
 pm2 kill
 
-# Compilează TypeScript
-echo "🔨 Compilare TypeScript..."
-npx tsc scraper.ts --esModuleInterop true
+# Verifică și instalează dependențele
+echo "📦 Verificare dependențe..."
+npm install
 
-# Verifică dacă compilarea a reușit
-if [ ! -f "scraper.js" ]; then
-    echo "❌ Eroare: Compilarea TypeScript a eșuat!"
-    exit 1
-fi
+# Pornește aplicația direct cu ts-node prin PM2
+echo "🚀 Pornire aplicație..."
+pm2 start ecosystem.config.js --time
 
-# Pornește aplicația cu PM2
-echo "🚀 Pornire aplicație cu PM2..."
-pm2 start ecosystem.config.js
+# Salvează configurația PM2
+echo "💾 Salvare configurație PM2..."
 pm2 save
 
-# Afișează status-ul
+# Afișează status-ul și log-urile imediat
 echo "📊 Status PM2:"
 pm2 list
-
-echo "✅ Deployment complet! Pentru a vedea log-urile, rulați: pm2 logs scraper" 
+echo "📜 Log-uri recente:"
+pm2 logs --lines 20 --nostream 
