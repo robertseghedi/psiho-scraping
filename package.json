@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "scraper.ts",
   "scripts": {
-    "start": "ts-node scraper.ts",
+    "start": "ts-node scraper.js",
     "build": "tsc",
-    "pm2": "ts-node scraper.ts"
+    "pm2": "ts-node scraper.js"
   },
   "keywords": [],
   "author": "",
