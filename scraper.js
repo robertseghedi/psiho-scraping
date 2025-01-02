@@ -20,14 +20,18 @@ async function scrapePage(pageNumber) {
 
         // Selectăm toate rândurile din tbody
         $('table.table-striped tbody tr').each((_, element) => {
-            // CUI-ul este în al doilea td din fiecare tr
-            const cuiCell = $(element).find('td:nth-child(2)');
-            const cui = cuiCell.text().trim();
+            // Extragem textul din celula CUI și curățăm spațiile
+            const cuiText = $(element).find('td:nth-child(2)').text().trim();
             
-            // Verificăm dacă e un CUI valid (doar cifre)
-            if (cui && /^\d+$/.test(cui)) {
-                console.log(`🔎 CUI găsit: ${cui}`);
-                cuis.push(cui);
+            // Folosim regex pentru a extrage doar numerele
+            const cuiMatch = cuiText.match(/\d+/);
+            
+            if (cuiMatch) {
+                const cui = cuiMatch[0];
+                if (cui.length >= 6 && cui.length <= 9) { // CUI-urile valide au între 6 și 9 cifre
+                    console.log(`🔎 CUI găsit: ${cui}`);
+                    cuis.push(cui);
+                }
             }
         });
 
@@ -41,28 +45,26 @@ async function scrapePage(pageNumber) {
 
 async function processCUI(cui) {
     try {
-        // Adăugăm un delay între requesturi pentru a evita rate limiting
-        await sleep(2000);
+        await sleep(2000); // Delay între requesturi
 
-        const response = await axios.get(`${API_URL}${cui}`, {
+        // Curățăm CUI-ul de spații și caractere nedorite
+        const cleanCui = cui.trim().replace(/\s+/g, '');
+        
+        const response = await axios.get(`${API_URL}${cleanCui}`, {
             headers: {
                 'Authorization': `Bearer ${BEARER_TOKEN}`,
                 'Accept': 'application/json'
-            },
-            validateStatus: function (status) {
-                return status < 600; // Acceptă orice status pentru a evita crash-ul
             }
         });
 
-        if (response.status === 500) {
-            console.log(`⚠️ CUI ${cui} nu a fost găsit în baza de date`);
-            return false;
-        }
-
-        console.log(`✅ CUI procesat cu succes: ${cui}`);
+        console.log(`✅ CUI procesat cu succes: ${cleanCui}`);
         return true;
     } catch (error) {
-        console.error(`❌ Eroare la procesarea CUI ${cui}:`, error.message);
+        if (error.response?.status === 500) {
+            console.log(`⚠️ CUI ${cui} nu a fost găsit în baza de date`);
+        } else {
+            console.error(`❌ Eroare la procesarea CUI ${cui}:`, error.message);
+        }
         return false;
     }
 }
