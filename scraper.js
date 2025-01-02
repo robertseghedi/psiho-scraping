@@ -61,10 +61,10 @@ async function processCUI(cui) {
         console.log({
             input: cui,
             status: response.status,
-            respData: respData
+            e_data_response: respData.status
         });
 
-        console.log(`✅ CUI procesat cu succes: ${cleanCui}. Status: ${response.status}. Raspuns API e-data: ${respData.status.code} (${respData.status.message})`);
+        console.log(`${respData.status.code === 200 ? `✅ CUI procesat cu succes: ${cleanCui}. Status: ${response.status}. Raspuns API e-data: ${respData.status.code} (${respData.status.message})` : `❌ CUI ${cleanCui} nu a fost găsit în baza de date`}`);
         return true;
     } catch (error) {
         if (error.response?.status === 500) {
