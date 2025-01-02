@@ -19,13 +19,24 @@ pm2 start dist/scraper.js \
     --max-memory-restart 2G \
     --node-args="--max-old-space-size=2048 --experimental-modules" \
     --exp-backoff-restart-delay=1000 \
-    --watch \
-    --restart-delay=3000 \
-    --no-autorestart=false \
-    --time
+    --time \
+    -i 1 \
+    --merge-logs \
+    --log-date-format "YYYY-MM-DD HH:mm:ss" \
+    --kill-timeout 3000 \
+    --listen-timeout 8000 \
+    --wait-ready \
+    --no-daemon
+
+# Detașează procesul de terminal
+pm2 detach
 
 # Forțează salvarea configurației PM2
 pm2 save --force
 
-# Afișează logs
-pm2 logs scraper 
+# Afișează status-ul final
+pm2 list
+
+echo "Procesul rulează acum în background. Poți închide terminalul."
+echo "Pentru a vedea log-urile folosește: pm2 logs scraper"
+echo "Pentru a monitoriza folosește: pm2 monit" 
